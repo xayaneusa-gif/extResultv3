@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Result Console</title>
+    <style>
+        :root {
+            --bg: #0a111b;
+            --bg-2: #0f1a28;
+            --panel: rgba(16, 26, 38, 0.72);
+            --panel-2: rgba(21, 34, 50, 0.9);
+            --panel-3: rgba(23, 39, 59, 0.68);
+            --line: #89a6c5;
+            --line-bright: #d2dde8;
+            --line-soft: rgba(137, 166, 197, 0.2);
+            --line-glow: rgba(137, 166, 197, 0.34);
+            --cyan: #6c9ec5;
+            --cyan-soft: rgba(108, 158, 197, 0.2);
+            --magenta: #8b9bb0;
+            --magenta-soft: rgba(139, 155, 176, 0.2);
+            --amber: #d2b489;
+            --amber-soft: rgba(210, 180, 137, 0.18);
+            --text: #edf2f7;
+            --muted: #9fb1c4;
+            --danger: #ff6c8f;
+            --shadow: 0 22px 80px rgba(0, 0, 0, 0.42);
+        }
+
+        * { box-sizing: border-box; }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.18; transform: translateY(0); }
+            50% { opacity: 0.28; transform: translateY(2px); }
+        }
+
+        @keyframes drift {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(18px, -10px, 0) scale(1.05); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+
+        @keyframes frameIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 0 rgba(71, 255, 162, 0); }
+            50% { box-shadow: 0 0 24px rgba(71, 255, 162, 0.12); }
+        }
+
+        @keyframes sweep {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.18; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.15); }
+        }
+
+        @keyframes codeShift {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: Consolas, "Courier New", monospace;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 18%, rgba(139,155,176,0.18), transparent 22%),
+                radial-gradient(circle at 82% 24%, rgba(108,158,197,0.18), transparent 22%),
+                radial-gradient(circle at 62% 68%, rgba(210,180,137,0.12), transparent 24%),
+                linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            background-image:
+                linear-gradient(rgba(71,255,162,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(103,232,255,0.04) 1px, transparent 1px);
+            background-size: 100% 4px, 64px 100%;
+            animation: gridPulse 6s ease-in-out infinite;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 999px;
+            filter: blur(10px);
+            opacity: 0.18;
+            pointer-events: none;
+            animation: drift 12s ease-in-out infinite;
+        }
+
+        .orb.one {
+            width: 220px;
+            height: 220px;
+            top: 70px;
+            left: -60px;
+            background: radial-gradient(circle, rgba(139,155,176,0.46), transparent 65%);
+        }
+
+        .orb.two {
+            width: 280px;
+            height: 280px;
+            right: -80px;
+            top: 140px;
+            background: radial-gradient(circle, rgba(108,158,197,0.42), transparent 68%);
+            animation-duration: 15s;
+        }
+
+        .wrap {
+            position: relative;
+            width: min(1240px, calc(100% - 32px));
+            margin: 24px auto 42px;
+            z-index: 1;
+        }
+
+        .hero,
+        .panel,
+        .metrics-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(18,26,96,0.82), rgba(10,17,62,0.82));
+            border: 1px solid var(--line-soft);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            animation: frameIn 0.7s ease both;
+        }
+
+        .hero::before,
+        .panel::before,
+        .metrics-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.04) 28%, transparent 52%);
+            transform: translateX(-120%);
+            animation: drift 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .hero {
+            padding: 26px 28px;
+            margin-bottom: 18px;
+            border-radius: 30px;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .hero-copy {
+            flex: 1 1 54%;
+        }
+
+        .hero-visual {
+            position: relative;
+            flex: 1 1 40%;
+            min-height: 300px;
+            border-radius: 28px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 28%),
+                linear-gradient(180deg, rgba(19,26,95,0.58), rgba(11,18,66,0.1));
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .hero-visual::before,
+        .hero-visual::after {
+            content: "";
+            position: absolute;
+            inset: 24px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .hero-visual::after {
+            inset: 52px;
+            border-color: rgba(103,232,255,0.1);
+        }
+
+        .portal-ring {
+            position: absolute;
+            left: 56%;
+            top: 56%;
+            width: 280px;
+            height: 280px;
+            transform: translate(-50%, -50%);
+            border-radius: 999px;
+            background:
+                conic-gradient(from 180deg, #6c9ec5, #8b9bb0, #d2b489, #6c9ec5);
+            filter: blur(0.2px);
+            box-shadow:
+                0 0 24px rgba(103,232,255,0.34),
+                0 0 60px rgba(244,95,255,0.28),
+                0 0 100px rgba(255,209,127,0.14);
+        }
+
+        .portal-ring::before {
+            content: "";
+            position: absolute;
+            inset: 26px;
+            border-radius: 999px;
+            background:
+                radial-gradient(circle at 45% 42%, rgba(255,255,255,0.12), transparent 25%),
+                linear-gradient(180deg, rgba(16,23,84,0.92), rgba(9,14,52,0.98));
+            box-shadow: inset 0 0 40px rgba(255,255,255,0.08);
+        }
+
+        .portal-core {
+            position: absolute;
+            inset: -18px;
+            border-radius: 999px;
+            background:
+                radial-gradient(circle at 30% 35%, rgba(255,255,255,0.62), transparent 18%),
+                radial-gradient(circle at 60% 40%, rgba(103,232,255,0.36), transparent 38%),
+                radial-gradient(circle at 68% 68%, rgba(244,95,255,0.28), transparent 40%);
+            mix-blend-mode: screen;
+            opacity: 0.95;
+        }
+
+        .portal-beam {
+            position: absolute;
+            right: 28px;
+            top: 26px;
+            width: 170px;
+            height: 320px;
+            background: linear-gradient(180deg, rgba(103,232,255,0), rgba(103,232,255,0.34), rgba(244,95,255,0));
+            transform: rotate(34deg);
+            filter: blur(14px);
+            opacity: 0.8;
+        }
+
+        .hero-ship {
+            position: absolute;
+            left: 19%;
+            top: 56%;
+            width: 200px;
+            height: 78px;
+            transform: translateY(-50%) rotate(-12deg);
+            filter: drop-shadow(0 24px 34px rgba(0,0,0,0.34));
+        }
+
+        .ship-body {
+            position: absolute;
+            inset: 18px 26px 18px 10px;
+            background: linear-gradient(135deg, rgba(255,230,190,0.95), rgba(164,205,255,0.86) 44%, rgba(35,33,79,0.96));
+            clip-path: polygon(0 50%, 28% 0, 100% 24%, 82% 52%, 100% 76%, 28% 100%);
+            border-radius: 16px;
+        }
+
+        .ship-wing {
+            position: absolute;
+            width: 86px;
+            height: 16px;
+            right: 4px;
+            background: linear-gradient(90deg, rgba(255,200,134,0.8), rgba(111,223,255,0.34));
+            clip-path: polygon(0 50%, 100% 0, 88% 50%, 100% 100%);
+        }
+
+        .ship-wing.top { top: 10px; transform: rotate(-8deg); }
+        .ship-wing.bottom { bottom: 10px; transform: rotate(8deg); }
+
+        .ship-core {
+            position: absolute;
+            left: 58px;
+            top: 28px;
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(103,232,255,0.7) 50%, rgba(244,95,255,0.4));
+            box-shadow: 0 0 18px rgba(103,232,255,0.6);
+        }
+
+        .frame-corner {
+            position: absolute;
+            width: 52px;
+            height: 52px;
+            border-color: rgba(255,255,255,0.34);
+            border-style: solid;
+            pointer-events: none;
+        }
+
+        .frame-corner.tl { top: 18px; left: 18px; border-width: 1px 0 0 1px; border-top-left-radius: 14px; }
+        .frame-corner.tr { top: 18px; right: 18px; border-width: 1px 1px 0 0; border-top-right-radius: 14px; }
+        .frame-corner.bl { bottom: 18px; left: 18px; border-width: 0 0 1px 1px; border-bottom-left-radius: 14px; }
+        .frame-corner.br { bottom: 18px; right: 18px; border-width: 0 1px 1px 0; border-bottom-right-radius: 14px; }
+
+        .kicker {
+            color: var(--amber);
+            font-size: 13px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 10px 0 10px;
+            font-size: clamp(32px, 6vw, 56px);
+            line-height: 0.95;
+            text-shadow: 0 0 24px rgba(103,232,255,0.12);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            max-width: 760px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .hero-badge {
+            min-width: 180px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            text-align: left;
+        }
+
+        .hero-badge .label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .hero-badge .value {
+            display: block;
+            margin-top: 8px;
+            color: var(--line-bright);
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .metrics-card {
+            padding: 14px 16px;
+            background: linear-gradient(180deg, rgba(33,42,132,0.72), rgba(12,17,67,0.7));
+            backdrop-filter: blur(8px);
+        }
+
+        .metrics-card:nth-child(1) { border-color: var(--line-soft); }
+        .metrics-card:nth-child(2) { border-color: var(--cyan-soft); }
+        .metrics-card:nth-child(3) { border-color: var(--amber-soft); }
+        .metrics-card:nth-child(4) { border-color: var(--magenta-soft); }
+
+        .metrics-card .metric-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .metrics-card .metric-value {
+            display: block;
+            margin-top: 8px;
+            color: var(--text);
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            padding: 22px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            margin: 0;
+            color: var(--line-bright);
+            font-size: 13px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .panel-tag {
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--line-soft);
+            color: var(--muted);
+            background: rgba(255,255,255,0.06);
+            font-size: 12px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 150px 1fr auto;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 14px;
+            padding: 14px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        label {
+            color: var(--line);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line-soft);
+            background: linear-gradient(180deg, rgba(23,31,116,0.92), rgba(16,24,87,0.92));
+            color: var(--text);
+            font: inherit;
+            outline: none;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        select option {
+            color: #0a0f35;
+            background: #ffffff;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--line);
+            box-shadow: 0 0 0 3px rgba(103,232,255,0.12), 0 0 22px rgba(244,95,255,0.16);
+            transform: translateY(-1px);
+        }
+
+        button,
+        .download-link {
+            position: relative;
+            overflow: hidden;
+            padding: 14px 18px;
+            border: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #7ea1c3 0%, #93a8be 52%, #d2b489 100%);
+            color: #08111a;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 160px;
+            box-shadow: 0 10px 34px rgba(244,95,255,0.18);
+            transition: transform 0.22s ease, filter 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        button::before,
+        .download-link::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.36) 45%, transparent 85%);
+            transform: translateX(-140%);
+            transition: transform 0.5s ease;
+        }
+
+        button:hover,
+        .download-link:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+            box-shadow: 0 14px 34px rgba(71,255,162,0.2);
+        }
+
+        button:hover::before,
+        .download-link:hover::before {
+            transform: translateX(140%);
+        }
+
+        button:disabled {
+            opacity: 0.52;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            position: relative;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(103,232,255,0.06));
+            border: 1px solid rgba(103,232,255,0.16);
+            color: var(--text);
+            margin-bottom: 14px;
+            min-height: 72px;
+            animation: glow 4s ease-in-out infinite;
+        }
+
+        .status::after {
+            content: "";
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--amber);
+            box-shadow: 0 0 18px var(--amber);
+        }
+
+        .progress-shell {
+            height: 8px;
+            width: 100%;
+            margin: 10px 0 16px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .progress-bar {
+            width: 8%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #67e8ff, #f45fff 60%, #ffd17f);
+            box-shadow: 0 0 18px rgba(244,95,255,0.26);
+            transition: width 0.35s ease;
+        }
+
+        .console-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .log {
+            min-height: 420px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(4,12,9,0.95), rgba(7,16,12,0.98));
+            border: 1px solid var(--line-soft);
+            color: var(--line);
+            white-space: pre-wrap;
+            overflow: auto;
+            box-shadow: inset 0 0 0 1px rgba(71,255,162,0.04);
+        }
+
+        .log::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .log::-webkit-scrollbar-thumb {
+            background: rgba(71,255,162,0.22);
+            border-radius: 999px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .hud-circles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .circle-card {
+            display: grid;
+            justify-items: center;
+            gap: 8px;
+            padding: 14px 10px 12px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .ring {
+            width: 94px;
+            height: 94px;
+            position: relative;
+        }
+
+        .ring svg {
+            width: 94px;
+            height: 94px;
+            transform: rotate(-90deg);
+        }
+
+        .ring-track {
+            fill: none;
+            stroke: rgba(255,255,255,0.08);
+            stroke-width: 8;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 245;
+            stroke-dashoffset: 245;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .ring.green { color: var(--line); }
+        .ring.cyan { color: var(--cyan); }
+        .ring.magenta { color: var(--magenta); }
+
+        .ring-value {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .circle-label {
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .saved-block {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .saved-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .status-list {
+            min-height: 420px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(12,18,72,0.95), rgba(8,14,52,0.98));
+            border: 1px solid var(--line-soft);
+            overflow: auto;
+        }
+
+        .status-item {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            align-items: start;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .status-item:last-child {
+            border-bottom: 0;
+        }
+
+        .status-time {
+            color: var(--amber);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .status-text {
+            color: var(--text);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .download-link {
+            display: none;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .hint strong {
+            color: var(--line-bright);
+        }
+
+        @media (max-width: 980px) {
+            .metrics { grid-template-columns: repeat(2, 1fr); }
+            .grid { grid-template-columns: 1fr; }
+            .hud-circles { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 720px) {
+            .wrap { width: min(100%, calc(100% - 18px)); margin: 14px auto 24px; }
+            .hero-top { flex-direction: column; }
+            .metrics { grid-template-columns: 1fr; }
+            .hud-circles { grid-template-columns: 1fr; }
+            .row { grid-template-columns: 1fr; }
+            button, .download-link { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="wrap">
+        <section class="hero">
+            <div class="hero-top">
+                <div class="hero-copy">
+                    <div class="kicker">Secure Result Console</div>
+                    <h1>Browser Control Panel</h1>
+                    <div class="subtitle">
+                        Cinematic bridge interface for the fixed result extractor. Drive OTP verification, semester discovery, roll-range harvesting, and HTML export from a more spacecraft-like command surface.
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="frame-corner tl"></div>
+                    <div class="frame-corner tr"></div>
+                    <div class="frame-corner bl"></div>
+                    <div class="frame-corner br"></div>
+                    <div class="hero-ship">
+                        <div class="ship-body"></div>
+                        <div class="ship-wing top"></div>
+                        <div class="ship-wing bottom"></div>
+                        <div class="ship-core"></div>
+                    </div>
+                    <div class="portal-beam"></div>
+                    <div class="portal-ring">
+                        <div class="portal-core"></div>
+                    </div>
+                    <div class="hero-badge" style="position:absolute; top:18px; right:18px; min-width:210px;">
+                        <div class="label">System Mode</div>
+                        <span class="value" id="modeLabel">Idle / Armed</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics">
+                <div class="metrics-card">
+                    <div class="metric-label">Workflow Step</div>
+                    <span class="metric-value" id="metricStep">01</span>
+                </div>
+                <div class="metrics-card">
+                    <div class="metric-label">Semesters</div>
+                    <span class="metric-value" id="metricSemester">00</span>
+                </div>
+                <div class="metrics-card">
+                    <div class="metric-label">Range Span</div>
+                    <span class="metric-value" id="metricRange">000</span>
+                </div>
+                <div class="metrics-card">
+                    <div class="metric-label">Download State</div>
+                    <span class="metric-value" id="metricDownload">WAIT</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid">
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="section-title">Mission Inputs</h2>
+                    <div class="panel-tag">Operator Access</div>
+                </div>
+
+                <div class="row">
+                    <label for="roll">Roll Number</label>
+                    <input id="roll" placeholder="Enter roll number">
+                    <div class="panel-tag">Primary Roll</div>
+                </div>
+
+                <div class="row">
+                    <label for="otpRoll">OTP Mob Roll</label>
+                    <input id="otpRoll" placeholder="Roll no for OTP mobile">
+                    <button id="sendOtpBtn" onclick="startProcess()">Send OTP</button>
+                </div>
+
+                <div class="row">
+                    <label for="otp">OTP</label>
+                    <input id="otp" placeholder="Enter OTP">
+                    <button id="verifyBtn" onclick="verifyOtp()">Verify OTP</button>
+                </div>
+
+                <div class="row">
+                    <label for="sem">Semester</label>
+                    <select id="sem">
+                        <option value="">Verify OTP first</option>
+                    </select>
+                    <div class="panel-tag">Data Linked</div>
+                </div>
+
+                <div class="row">
+                    <label for="toneMode">Academic Tone</label>
+                    <select id="toneMode">
+                        <option value="motivational" selected>Motivational</option>
+                        <option value="teacher">Teacher Style</option>
+                        <option value="strict">Strict Academic</option>
+                    </select>
+                    <div class="panel-tag">Report Tone</div>
+                </div>
+
+                <div class="row">
+                    <label for="start">Start Roll</label>
+                    <input id="start" placeholder="Enter start roll">
+                    <div class="panel-tag">Sweep Start</div>
+                </div>
+
+                <div class="row">
+                    <label for="end">End Roll</label>
+                    <input id="end" placeholder="Enter end roll">
+                    <button id="generateBtn" onclick="generateHtml()">Generate HTML</button>
+                </div>
+
+                <div class="hint"><strong>Output:</strong> the combined result file downloads directly in the browser once the extraction pipeline completes.</div>
+
+                <div class="saved-block">
+                    <div class="panel-header" style="margin-bottom:12px;">
+                        <h2 class="section-title">Load Saved Data</h2>
+                        <div class="panel-tag">Stored JSON</div>
+                    </div>
+                    <div class="saved-grid">
+                        <select id="savedRun">
+                            <option value="">Select saved run folder</option>
+                        </select>
+                        <select id="savedSem">
+                            <option value="">Select semester folder</option>
+                        </select>
+                        <select id="savedToneMode">
+                            <option value="motivational" selected>Motivational</option>
+                            <option value="teacher">Teacher Style</option>
+                            <option value="strict">Strict Academic</option>
+                        </select>
+                        <button id="loadSavedBtn" type="button" onclick="loadSavedData()">Load Saved</button>
+                    </div>
+                    <div class="hint">Use this when JSON data is already present in a previous run folder.</div>
+                    <div class="saved-grid" style="margin-top:12px;">
+                        <div class="hint" style="margin:0;align-self:center;">Storage Management</div>
+                        <button id="jsessionBtn" type="button" onclick="updateJsession()">Update JSESSION</button>
+                        <button id="wipeBtn" type="button" onclick="wipeData()">Wipe Old Data</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="section-title">Live Console</h2>
+                    <div class="panel-tag" id="liveTag">Monitoring</div>
+                </div>
+                <div class="hud-circles">
+                    <div class="circle-card">
+                        <div class="ring green">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="ring-track" cx="50" cy="50" r="39"></circle>
+                                <circle id="ringProgress" class="ring-progress" cx="50" cy="50" r="39"></circle>
+                            </svg>
+                            <div id="ringProgressValue" class="ring-value">08%</div>
+                        </div>
+                        <div class="circle-label">Sweep Progress</div>
+                    </div>
+                    <div class="circle-card">
+                        <div class="ring cyan">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="ring-track" cx="50" cy="50" r="39"></circle>
+                                <circle id="ringSemester" class="ring-progress" cx="50" cy="50" r="39"></circle>
+                            </svg>
+                            <div id="ringSemesterValue" class="ring-value">00</div>
+                        </div>
+                        <div class="circle-label">Semester Load</div>
+                    </div>
+                    <div class="circle-card">
+                        <div class="ring magenta">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="ring-track" cx="50" cy="50" r="39"></circle>
+                                <circle id="ringActivity" class="ring-progress" cx="50" cy="50" r="39"></circle>
+                            </svg>
+                            <div id="ringActivityValue" class="ring-value">IDL</div>
+                        </div>
+                        <div class="circle-label">System Flux</div>
+                    </div>
+                </div>
+
+                <div id="status" class="status">Ready. Enter roll number to begin.</div>
+                <div class="progress-shell"><div id="progressBar" class="progress-bar"></div></div>
+                <div class="console-meta">
+                    <span id="consoleState">Console online</span>
+                    <span id="consoleClock">--:--:--</span>
+                </div>
+                <div id="statusList" class="status-list"></div>
+                <div class="actions">
+                    <a id="downloadLink" class="download-link" href="#" download="combined_result.html">Download Latest HTML</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module">
+        import { animate, createTimeline, stagger } from "https://cdn.jsdelivr.net/npm/animejs@4.2.1/+esm";
+
+        let semesterValues = [];
+        let progressValue = 8;
+        let savedRuns = [];
+        let progressPollTimer = null;
+        let progressCursor = 0;
+        const ringCircumference = 245;
+
+        const stateMap = {
+            idle: { step: "01", download: "WAIT" },
+            otp: { step: "02", download: "WAIT" },
+            verify: { step: "03", download: "WAIT" },
+            generate: { step: "04", download: "RUN" },
+            done: { step: "05", download: "RDY" },
+            error: { step: "ER", download: "ERR" }
+        };
+
+        function pulse(selector, scale = [1, 1.03, 1], duration = 520) {
+            animate(selector, {
+                scale,
+                duration,
+                ease: "inOutQuad"
+            });
+        }
+
+        function setRing(id, percent, labelId, labelValue) {
+            const ring = document.getElementById(id);
+            if (!ring) return;
+            const safe = Math.max(0, Math.min(100, percent));
+            const offset = ringCircumference - (ringCircumference * safe / 100);
+            animate(ring, {
+                strokeDashoffset: offset,
+                duration: 650,
+                ease: "inOutExpo"
+            });
+            if (labelId) {
+                document.getElementById(labelId).textContent = labelValue;
+            }
+        }
+
+        function flashMetric(id) {
+            pulse(`#${id}`, [1, 1.08, 1], 460);
+        }
+
+        function setMetric(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = value;
+                flashMetric(id);
+            }
+        }
+
+        function setProgress(value) {
+            progressValue = Math.max(4, Math.min(100, value));
+            animate("#progressBar", {
+                width: `${progressValue}%`,
+                duration: 500,
+                ease: "inOutExpo"
+            });
+            setRing("ringProgress", progressValue, "ringProgressValue", `${progressValue}%`);
+        }
+
+        function tickClock() {
+            document.getElementById("consoleClock").textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(tickClock, 1000);
+        tickClock();
+
+        function setStatus(message) {
+            document.getElementById("status").textContent = message;
+            document.getElementById("modeLabel").textContent = message.length > 24 ? message.slice(0, 24) + "..." : message;
+            document.getElementById("consoleState").textContent = message;
+            appendLog(message);
+            pulse("#status", [1, 1.015, 1], 640);
+        }
+
+        function appendLog(message) {
+            const log = document.getElementById("statusList");
+            const stamp = new Date().toLocaleTimeString();
+            const item = document.createElement("div");
+            item.className = "status-item";
+            item.innerHTML = `<div class="status-time">${stamp}</div><div class="status-text">${message}</div>`;
+            log.prepend(item);
+            while (log.children.length > 18) {
+                log.removeChild(log.lastElementChild);
+            }
+            animate("#statusList", {
+                boxShadow: [
+                    "inset 0 0 0 1px rgba(71,255,162,0.04)",
+                    "inset 0 0 0 1px rgba(71,255,162,0.18)",
+                    "inset 0 0 0 1px rgba(71,255,162,0.04)"
+                ],
+                duration: 420,
+                ease: "inOutQuad"
+            });
+        }
+
+        function setBusy(buttonId, busy) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.disabled = busy;
+            }
+            document.getElementById("liveTag").textContent = busy ? "Processing" : "Monitoring";
+            animate("#liveTag", {
+                scale: busy ? [1, 1.08, 1] : [1, 1.03, 1],
+                duration: 380,
+                ease: "inOutQuad"
+            });
+        }
+
+        async function pollProgress() {
+            try {
+                const response = await fetch(`/progress?since=${progressCursor}`);
+                const data = await response.json();
+                if (data.status !== "success") return;
+                (data.items || []).forEach((item) => {
+                    appendLog(item.message);
+                    document.getElementById("consoleState").textContent = item.message;
+                });
+                progressCursor = data.latest || progressCursor;
+            } catch (_) {}
+        }
+
+        function startProgressPolling() {
+            progressCursor = 0;
+            if (progressPollTimer) clearInterval(progressPollTimer);
+            progressPollTimer = setInterval(pollProgress, 700);
+        }
+
+        function stopProgressPolling() {
+            if (progressPollTimer) {
+                clearInterval(progressPollTimer);
+                progressPollTimer = null;
+            }
+        }
+
+        function setState(mode) {
+            const next = stateMap[mode] || stateMap.idle;
+            setMetric("metricStep", next.step);
+            setMetric("metricDownload", next.download);
+            const ringMap = {
+                idle: 18,
+                otp: 42,
+                verify: 62,
+                generate: 84,
+                done: 100,
+                error: 96
+            };
+            const labelMap = {
+                idle: "IDL",
+                otp: "OTP",
+                verify: "VRF",
+                generate: "RUN",
+                done: "RDY",
+                error: "ERR"
+            };
+            setRing("ringActivity", ringMap[mode] || 18, "ringActivityValue", labelMap[mode] || "IDL");
+        }
+
+        async function startProcess() {
+            const roll = document.getElementById("roll").value.trim();
+            const otpRoll = document.getElementById("otpRoll").value.trim();
+            if (!roll) {
+                setStatus("Roll number is required.");
+                return;
+            }
+            if (!otpRoll) {
+                setStatus("OTP mobile roll is required.");
+                return;
+            }
+
+            setState("otp");
+            setProgress(22);
+            setBusy("sendOtpBtn", true);
+            setStatus("Fetching result mobile and OTP mobile, then sending OTP...");
+
+            try {
+                const response = await fetch("/start", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    body: new URLSearchParams({roll, otp_roll: otpRoll})
+                });
+                const data = await response.json();
+                if (data.status !== "otp_sent") {
+                    throw new Error(data.message || "OTP request failed.");
+                }
+                setProgress(36);
+                setStatus("OTP sent. Enter the OTP and click Verify OTP.");
+            } catch (error) {
+                setState("error");
+                setStatus(`OTP error: ${error.message}`);
+            } finally {
+                setBusy("sendOtpBtn", false);
+            }
+        }
+
+        async function wipeData() {
+            const ok = window.confirm("Delete all old run folders and keep only the latest one?");
+            if (!ok) {
+                setStatus("Wipe cancelled.");
+                return;
+            }
+
+            setBusy("wipeBtn", true);
+            setStatus("Cleaning old saved data and keeping only the latest run...");
+
+            try {
+                const response = await fetch("/wipe-data", { method: "POST" });
+                const data = await response.json();
+                if (data.status !== "success") {
+                    throw new Error(data.message || "Wipe failed.");
+                }
+                const deleted = Array.isArray(data.deleted_runs) ? data.deleted_runs.length : 0;
+                const failed = Array.isArray(data.failed_runs) ? data.failed_runs.length : 0;
+                setStatus(`Wipe complete. Kept latest run: ${data.kept_run_folder || "none"} | Deleted: ${deleted} | Failed: ${failed}`);
+                await fetchSavedRuns();
+            } catch (error) {
+                setState("error");
+                setStatus(`Wipe error: ${error.message}`);
+            } finally {
+                setBusy("wipeBtn", false);
+            }
+        }
+
+        async function updateJsession() {
+            setBusy("jsessionBtn", true);
+            setStatus("Refreshing JSESSION and updating req1.txt...");
+            try {
+                const response = await fetch("/update-jsession", { method: "POST" });
+                const data = await response.json();
+                if (data.status !== "success") {
+                    throw new Error(data.message || "JSESSION update failed.");
+                }
+                const shortVal = (data.jsession || "").slice(0, 12);
+                setStatus(`JSESSION updated successfully (${shortVal}...).`);
+            } catch (error) {
+                setState("error");
+                setStatus(`JSESSION error: ${error.message}`);
+            } finally {
+                setBusy("jsessionBtn", false);
+            }
+        }
+
+        async function verifyOtp() {
+            const otp = document.getElementById("otp").value.trim();
+            if (!otp) {
+                setStatus("OTP is required.");
+                return;
+            }
+
+            setState("verify");
+            setProgress(48);
+            setBusy("verifyBtn", true);
+            setStatus("Verifying OTP and loading semesters...");
+
+            try {
+                const response = await fetch("/verify", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    body: new URLSearchParams({otp})
+                });
+                const data = await response.json();
+                if (data.status !== "success") {
+                    throw new Error(data.message || "OTP verification failed.");
+                }
+
+                semesterValues = data.sems || [];
+                const semSelect = document.getElementById("sem");
+                semSelect.innerHTML = "";
+
+                if (!semesterValues.length) {
+                    throw new Error("No semesters were returned.");
+                }
+
+                semesterValues.forEach((item, index) => {
+                    const option = document.createElement("option");
+                    option.value = index;
+                    option.textContent = item.label;
+                    semSelect.appendChild(option);
+                });
+
+                setMetric("metricSemester", String(semesterValues.length).padStart(2, "0"));
+                setRing("ringSemester", Math.min(100, semesterValues.length * 20), "ringSemesterValue", String(semesterValues.length).padStart(2, "0"));
+                setProgress(64);
+                setStatus("OTP verified. Semester data loaded.");
+            } catch (error) {
+                setState("error");
+                setStatus(`Verify error: ${error.message}`);
+            } finally {
+                setBusy("verifyBtn", false);
+            }
+        }
+
+        async function generateHtml() {
+            const start = document.getElementById("start").value.trim();
+            const end = document.getElementById("end").value.trim();
+            const semIndex = document.getElementById("sem").value;
+            const toneMode = document.getElementById("toneMode").value || "motivational";
+
+            if (!start || !end) {
+                setStatus("Start and end roll numbers are required.");
+                return;
+            }
+            if (semIndex === "") {
+                setStatus("Please select a semester first.");
+                return;
+            }
+
+            const sem = semesterValues[Number(semIndex)]?.value;
+            if (!sem) {
+                setStatus("Selected semester is invalid.");
+                return;
+            }
+
+            const rangeSpan = Math.max(0, Number(end) - Number(start) + 1);
+            setMetric("metricRange", String(rangeSpan).padStart(3, "0"));
+            setState("generate");
+            setProgress(76);
+            setBusy("generateBtn", true);
+            setStatus("Starting roll range fetch and HTML generation...");
+
+            try {
+                startProgressPolling();
+                const response = await fetch("/fetch", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    body: new URLSearchParams({
+                        start,
+                        end,
+                        sem: JSON.stringify(sem),
+                        tone_mode: toneMode
+                    })
+                });
+
+                if (!response.ok) {
+                    let errorText = "HTML generation failed.";
+                    try {
+                        const data = await response.json();
+                        errorText = data.message || errorText;
+                    } catch (_) {}
+                    throw new Error(errorText);
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.getElementById("downloadLink");
+                link.href = url;
+                link.style.display = "inline-flex";
+                setState("done");
+                setProgress(100);
+                link.click();
+                pulse("#downloadLink", [1, 1.06, 1], 640);
+
+                setStatus("HTML generated successfully. Download started.");
+            } catch (error) {
+                setState("error");
+                setStatus(`Generate error: ${error.message}`);
+            } finally {
+                stopProgressPolling();
+                setBusy("generateBtn", false);
+            }
+        }
+
+        async function fetchSavedRuns() {
+            try {
+                const response = await fetch("/runs");
+                const data = await response.json();
+                if (data.status !== "success") {
+                    throw new Error(data.message || "Could not load saved runs.");
+                }
+
+                savedRuns = data.runs || [];
+                const savedRun = document.getElementById("savedRun");
+                savedRun.innerHTML = '<option value="">Select saved run folder</option>';
+
+                savedRuns.forEach((item, index) => {
+                    const option = document.createElement("option");
+                    option.value = index;
+                    option.textContent = item.run_folder;
+                    savedRun.appendChild(option);
+                });
+            } catch (error) {
+                setStatus(`Saved-run load error: ${error.message}`);
+            }
+        }
+
+        function updateSavedSemesters() {
+            const runIndex = document.getElementById("savedRun").value;
+            const semSelect = document.getElementById("savedSem");
+            semSelect.innerHTML = '<option value="">Select semester folder</option>';
+            if (runIndex === "") {
+                return;
+            }
+
+            const run = savedRuns[Number(runIndex)];
+            (run?.sem_folders || []).forEach((name) => {
+                const option = document.createElement("option");
+                option.value = name;
+                option.textContent = name;
+                semSelect.appendChild(option);
+            });
+            if (run) {
+                const option = document.createElement("option");
+                option.value = "__all_semesters__";
+                option.textContent = "Overall Academic Record (Latest Valid Results)";
+                semSelect.appendChild(option);
+            }
+        }
+
+        async function loadSavedData() {
+            const runIndex = document.getElementById("savedRun").value;
+            const semFolder = document.getElementById("savedSem").value;
+            const toneMode = document.getElementById("savedToneMode").value || "motivational";
+
+            if (runIndex === "" || !semFolder) {
+                setStatus("Select both a saved run and semester folder.");
+                return;
+            }
+
+            const run = savedRuns[Number(runIndex)];
+            if (!run) {
+                setStatus("Saved run selection is invalid.");
+                return;
+            }
+
+            setBusy("loadSavedBtn", true);
+            setState("generate");
+            setStatus(`Loading saved data from ${run.run_folder}/${semFolder}...`);
+
+            try {
+                const response = await fetch("/load-existing", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    body: new URLSearchParams({
+                        run_folder: run.run_folder,
+                        sem_folder: semFolder,
+                        tone_mode: toneMode
+                    })
+                });
+
+                if (!response.ok) {
+                    let errorText = "Saved data load failed.";
+                    try {
+                        const data = await response.json();
+                        errorText = data.message || errorText;
+                    } catch (_) {}
+                    throw new Error(errorText);
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.getElementById("downloadLink");
+                link.href = url;
+                link.style.display = "inline-flex";
+                setState("done");
+                setProgress(100);
+                link.click();
+                setStatus("Saved JSON data loaded successfully. Download started.");
+            } catch (error) {
+                setState("error");
+                setStatus(`Saved-data error: ${error.message}`);
+            } finally {
+                setBusy("loadSavedBtn", false);
+            }
+        }
+
+        function startAmbientAnimations() {
+            createTimeline({ defaults: { ease: "outExpo", duration: 900 } })
+                .add(".hero", { opacity: [0, 1], translateY: [36, 0], scale: [0.985, 1] })
+                .add(".metrics-card", {
+                    opacity: [0, 1],
+                    translateY: [28, 0],
+                    delay: stagger(90)
+                }, "-=520")
+                .add(".panel", {
+                    opacity: [0, 1],
+                    translateY: [30, 0],
+                    delay: stagger(140)
+                }, "-=520")
+                .add(".row", {
+                    opacity: [0, 1],
+                    translateX: [-18, 0],
+                    delay: stagger(70)
+                }, "-=520");
+
+            animate(".orb.one", {
+                translateX: [0, 26, 0],
+                translateY: [0, -16, 0],
+                scale: [1, 1.08, 1],
+                duration: 12000,
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            animate(".orb.two", {
+                translateX: [0, -30, 0],
+                translateY: [0, 18, 0],
+                scale: [1, 1.12, 1],
+                duration: 15000,
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            animate(".portal-ring", {
+                rotate: [0, 360],
+                duration: 16000,
+                loop: true,
+                ease: "linear"
+            });
+
+            animate(".portal-core", {
+                scale: [1, 1.04, 0.98, 1],
+                opacity: [0.84, 1, 0.9, 0.84],
+                duration: 5200,
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            animate(".portal-beam", {
+                opacity: [0.4, 0.92, 0.4],
+                translateY: [-10, 18, -10],
+                duration: 4400,
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            animate(".hero-ship", {
+                translateY: [-8, 12, -8],
+                translateX: [-4, 14, -4],
+                rotate: [-12, -8, -12],
+                duration: 6200,
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            animate(".metrics-card", {
+                translateY: ["0rem", "-0.08rem", "0rem"],
+                boxShadow: [
+                    "0 22px 80px rgba(0, 0, 0, 0.42)",
+                    "0 24px 86px rgba(103, 232, 255, 0.10)",
+                    "0 22px 80px rgba(0, 0, 0, 0.42)"
+                ],
+                delay: stagger(180),
+                duration: 4200,
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            animate(".panel-tag", {
+                opacity: [0.72, 1, 0.72],
+                duration: 2200,
+                delay: stagger(140),
+                loop: true,
+                ease: "inOutSine"
+            });
+
+            document.querySelectorAll("button, .download-link").forEach((node) => {
+                node.addEventListener("mouseenter", () => {
+                    animate(node, {
+                        scale: 1.03,
+                        duration: 180,
+                        ease: "outQuad"
+                    });
+                });
+                node.addEventListener("mouseleave", () => {
+                    animate(node, {
+                        scale: 1,
+                        duration: 220,
+                        ease: "outQuad"
+                    });
+                });
+            });
+        }
+
+        startAmbientAnimations();
+        fetchSavedRuns();
+        document.getElementById("savedRun").addEventListener("change", updateSavedSemesters);
+        setState("idle");
+        setProgress(8);
+        setRing("ringSemester", 12, "ringSemesterValue", "00");
+        setStatus("Ready. Enter roll number to begin.");
+
+        window.startProcess = startProcess;
+        window.verifyOtp = verifyOtp;
+        window.generateHtml = generateHtml;
+        window.loadSavedData = loadSavedData;
+        window.updateJsession = updateJsession;
+    </script>
+</body>
+</html>

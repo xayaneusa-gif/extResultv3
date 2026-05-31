@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Semester Result</title>
+    <style>
+        :root {
+            --bg: radial-gradient(circle at 10% 10%, #e9f2ff 0%, #f4f7ff 36%, #f8fbff 100%);
+            --card: #ffffff;
+            --line: #b7c4d8;
+            --text: #1d2939;
+            --muted: #667085;
+            --head: #eef2f8;
+            --blue: #2f6fed;
+            --blue-soft: #eaf1ff;
+            --pass-bg: #e8f8ef;
+            --pass-text: #157347;
+            --re-bg: #fff4db;
+            --re-text: #b26a00;
+            --abs-bg: #ffe5e8;
+            --abs-text: #c62828;
+            --fail-bg: #fff7cc;
+            --fail-text: #8a6a00;
+            --neutral-bg: #e8f8ef;
+            --neutral-text: #157347;
+        }
+
+        @media print {
+            @page {
+                size: landscape;
+                margin: 10mm;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 18px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+
+        .section {
+            background: var(--card);
+            border: 2px solid #c7d5ea;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 22px rgba(16, 24, 40, 0.08);
+        }
+
+        .section-title {
+            margin: 0 0 14px;
+            font-size: 18px;
+            color: var(--blue);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--blue-soft);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .info-box {
+            background: #fbfcff;
+            border: 1px solid #cad5e5;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .info-box small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .summary-tile {
+            border: 1px solid #cad5e5;
+            border-radius: 10px;
+            padding: 12px;
+            background: linear-gradient(180deg, #fbfcff, #f5f8ff);
+        }
+
+        .summary-tile small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .summary-tile strong {
+            font-size: 20px;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .status-pass {
+            background: var(--pass-bg);
+            color: var(--pass-text);
+        }
+
+        .status-reappear {
+            background: var(--re-bg);
+            color: var(--re-text);
+        }
+
+        .status-rl {
+            background: var(--abs-bg);
+            color: var(--abs-text);
+        }
+        .status-ab {
+            background: #e8f1ff;
+            color: #1d4ed8;
+        }
+
+        .status-fail {
+            background: var(--fail-bg);
+            color: var(--fail-text);
+        }
+
+        .status-neutral {
+            background: var(--neutral-bg);
+            color: var(--neutral-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border: 2px solid #c7d2e5;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            border: 1px solid #c4cfdf;
+            padding: 9px 10px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--head);
+            color: #344054;
+            font-weight: 700;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: #fafcff;
+        }
+
+        tbody tr:hover td {
+            background: #f1f6ff;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .leaderboard-table tbody tr.status-pass td {
+            background: var(--pass-bg);
+        }
+
+        .leaderboard-table tbody tr.status-reappear td {
+            background: var(--re-bg);
+        }
+
+        .leaderboard-table tbody tr.status-rl td {
+            background: var(--abs-bg);
+        }
+        .leaderboard-table tbody tr.status-ab td {
+            background: #e8f1ff;
+        }
+
+        .leaderboard-table tbody tr.status-fail td {
+            background: var(--fail-bg);
+        }
+
+        .leaderboard-table tbody tr.status-neutral td {
+            background: var(--neutral-bg);
+        }
+
+        .result-footer {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .subject-insights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 14px 0;
+        }
+
+        .subject-scorecards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin: 16px 0 14px;
+        }
+
+        .note-box {
+            border: 1px solid #cad5e5;
+            border-radius: 12px;
+            padding: 14px;
+            background: linear-gradient(180deg, #fafdff 0%, #eef5ff 100%);
+            margin-top: 14px;
+        }
+
+        .advice-box {
+            border: 1px solid #f1d08a;
+            border-radius: 12px;
+            padding: 14px;
+            background: linear-gradient(180deg, #fffdf8 0%, #fff5df 100%);
+            margin-top: 14px;
+        }
+
+        .note-box p {
+            margin: 0;
+            line-height: 1.7;
+            color: #344054;
+        }
+
+        .advice-box p {
+            margin: 0;
+            line-height: 1.7;
+            color: #6b4f00;
+        }
+
+        .strength-tags {
+            margin-top: 12px;
+        }
+
+        .footer-card {
+            border: 1px solid #cad5e5;
+            border-radius: 10px;
+            padding: 12px;
+            background: #fbfcff;
+        }
+
+        @media (max-width: 900px) {
+            .info-grid,
+            .summary-grid,
+            .result-footer,
+            .subject-insights,
+            .subject-scorecards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const charts = document.querySelectorAll(".fp-chart");
+            charts.forEach((chart) => {
+                const tip = chart.querySelector(".fp-tooltip");
+                if (!tip) return;
+
+                const showTip = (node, clientX, clientY) => {
+                    const label = node.getAttribute("data-label") || "Sem";
+                    const series = node.getAttribute("data-series") || "Value";
+                    const value = node.getAttribute("data-value") || "-";
+                    tip.textContent = `${label} | ${series}: ${value}`;
+                    tip.style.display = "block";
+                    const box = chart.getBoundingClientRect();
+                    const x = (clientX - box.left) + 12;
+                    const y = (clientY - box.top) - 8;
+                    tip.style.left = `${x}px`;
+                    tip.style.top = `${y}px`;
+                };
+
+                const hideTip = () => {
+                    tip.style.display = "none";
+                };
+
+                chart.querySelectorAll(".fp-node").forEach((node) => {
+                    node.style.cursor = "pointer";
+                    node.addEventListener("pointermove", (event) => showTip(node, event.clientX, event.clientY));
+                    node.addEventListener("pointerleave", hideTip);
+                    node.addEventListener("click", (event) => showTip(node, event.clientX, event.clientY));
+                    node.addEventListener("touchstart", (event) => {
+                        const touch = event.touches && event.touches[0];
+                        if (!touch) return;
+                        showTip(node, touch.clientX, touch.clientY);
+                    }, { passive: true });
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="section">
+        <h2 class="section-title">Semester Comparison</h2>
+        <div class="summary-grid">
+            <div class="summary-tile">
+                <small>Current Student Rank</small>
+                <strong>#{{CLASS_RANK}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Batch Size</small>
+                <strong>{{BATCH_COUNT}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Better Than</small>
+                <strong>{{BETTER_THAN}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Gap From Top</small>
+                <strong>{{GAP_FROM_TOP}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Consistency Score</small>
+                <strong>{{CONSISTENCY_SCORE}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Performance Balance</small>
+                <strong>{{CONSISTENCY_BAND}}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Selection Details</h2>
+        <div class="info-grid">
+            <div class="info-box">
+                <small>Institute Name</small>
+                <strong>{{INSTITUTE}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Program Name</small>
+                <strong>{{DEGREE}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Exam Name</small>
+                <strong>{{EXAM_SCHEDULE}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Semester</small>
+                <strong>{{SEMESTER}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Exam Attempt</small>
+                <strong>{{EXAM_ATTEMPT}}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Student Result</h2>
+        <div class="info-grid" style="margin-bottom: 14px;">
+            <div class="info-box">
+                <small>Student Roll No</small>
+                <strong>{{ROLL_NO}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Student Registration No</small>
+                <strong>{{REG_NO}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Student Name</small>
+                <strong>{{STUDENT_NAME}}</strong>
+            </div>
+            <div class="info-box">
+                <small>Father / Mother Name</small>
+                <strong>{{FATHER_NAME}} / {{MOTHER_NAME}}</strong>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Credit</th>
+                    <th>Ext MO</th>
+                    <th>Ext MPM</th>
+                    <th>Ext MM</th>
+                    <th>Int MO</th>
+                    <th>Int MPM</th>
+                    <th>Int MM</th>
+                    <th>Pr Ext MO</th>
+                    <th>Pr Ext MPM</th>
+                    <th>Pr Ext MM</th>
+                    <th>Pr Int MO</th>
+                    <th>Pr Int MPM</th>
+                    <th>Pr Int MM</th>
+                    <th>Total</th>
+                    <th>Sub Rank</th>
+                    <th>Grade</th>
+                    <th>Grade Point</th>
+                    <th>Credit Points</th>
+                    <th>Result</th>
+                    <th>Batch Insight</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{SUBJECT_ROWS}}
+            </tbody>
+        </table>
+
+        <div class="subject-insights">
+            <div class="summary-tile">
+                <small>Best Subject</small>
+                <strong>{{BEST_SUBJECT}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Weakest Subject</small>
+                <strong>{{WEAKEST_SUBJECT}}</strong>
+            </div>
+            <div class="summary-tile">
+                <small>Subjects Above Batch Avg</small>
+                <strong>{{ABOVE_AVG_SUBJECTS}}</strong>
+            </div>
+        </div>
+
+        <div class="note-box">
+            <small style="display:block;color:#667085;margin-bottom:8px;">Performance Interpretation</small>
+            <p>{{PERFORMANCE_NOTE}}</p>
+            <div class="strength-tags">
+                {{STRENGTH_TAGS}}
+            </div>
+        </div>
+
+        <div class="advice-box">
+            <small style="display:block;color:#9a6b00;margin-bottom:8px;">Improvement Advisory</small>
+            <p>{{ADVICE_NOTE}}</p>
+            <div class="strength-tags">
+                {{ADVICE_TAGS}}
+            </div>
+        </div>
+
+        <div class="section" style="margin: 16px 0 0; padding: 14px;">
+            <h3 class="section-title" style="margin-bottom: 12px;">Subject Scorecards</h3>
+            <div class="subject-scorecards">
+                {{SUBJECT_SCORECARDS}}
+            </div>
+        </div>
+
+        <div class="result-footer">
+            <div class="footer-card">
+                <strong>Total Marks:</strong> {{TOTAL_MARKS}}<br>
+                <strong>SGPA:</strong> {{SGPA}}<br>
+                <strong>Result Declaration Date:</strong> {{RESULT_DATE}}
+            </div>
+            <div class="footer-card">
+                <strong>Semester Result:</strong><br><br>
+                <span class="result-badge {{RESULT_CLASS}}">{{SEM_RESULT}}</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
