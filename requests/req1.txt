@@ -1,0 +1,18 @@
+GET /restApi/result/verify-student.json?examRollNumber=2023196172 HTTP/1.1
+Host: iums.kuk.ac.in
+Connection: close
+Cache-Control: max-age=0
+sec-ch-ua: "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Windows"
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate
+Accept-Language: en-GB,en-US;q=0.9,en;q=0.8
+Cookie: _ga=GA1.1.1866644443.1765887363; __utmz=244056733.1765887363.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utma=244056733.1866644443.1765887363.1774179363.1774245083.11; _ga_70Q2G5SZRG=GS2.1.s1774245084$o11$g0$t1774245087$j57$l0$h0; JSESSIONID=A8572A6AA0A3241E714C59F96673520F.jvm2
+

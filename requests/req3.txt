@@ -1,0 +1,17 @@
+GET /restApi/result/declared-result.json?__std=888eb87d62988e408fa4f578c299d142&authType=MOBILE_OTP&authValue=918759&__mobileNo=72584636b8a13f1e952619fd7308692e HTTP/1.1
+Host: iums.kuk.ac.in
+Connection: close
+sec-ch-ua-platform: "Windows"
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+sec-ch-ua: "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+sec-ch-ua-mobile: ?0
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: https://iums.kuk.ac.in/anon_studentResultReport.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-GB,en-US;q=0.9,en;q=0.8,hi;q=0.7
+Cookie: __utmz=244056733.1764731446.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _ga=GA1.1.1663529935.1764731447; __utma=244056733.1713215848.1764731446.1766320295.1770902091.3; _ga_70Q2G5SZRG=GS2.1.s1770902090$o3$g1$t1770902564$j52$l0$h0; JSESSIONID=C684F8504BE2D06D5130AD2085AD4FC2.jvm1
+

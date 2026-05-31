@@ -1,0 +1,21 @@
+POST /restApi/fetchStudentDmcReport.json HTTP/1.1
+Host: iums.kuk.ac.in
+Connection: close
+Content-Length: 143
+sec-ch-ua-platform: "Windows"
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+sec-ch-ua: "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+sec-ch-ua-mobile: ?0
+Origin: https://iums.kuk.ac.in
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: https://iums.kuk.ac.in/anon_studentResultReport.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-GB,en-US;q=0.9,en;q=0.8
+Cookie: _ga=GA1.1.1866644443.1765887363; __utmz=244056733.1765887363.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); JSESSIONID=4667C733E22562472E0F05873BF4FD90.jvm1; __utma=244056733.1866644443.1765887363.1774179363.1774245083.11; __utmc=244056733; __utmt=1; __utmb=244056733.1.10.1774245083; _ga_70Q2G5SZRG=GS2.1.s1774245084$o11$g0$t1774245087$j57$l0$h0
+
+qualificationId=575&syllbusId=386&semesterId=1&examScheduleId=2554&noOfSem=8&studentRegIds=553d8b099fd1b61d73d67f861e7a28d3&stdOpenResFlag=true
